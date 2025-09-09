@@ -29,5 +29,3 @@ python src/make_dataset.py --out data/apple.csv --ticker AAPL --start 2023-01-01
 python src/preprocess.py --input data/sample_stock.csv --output data/clean_stock.csv
 python src/train.py --input data/clean_stock.csv --model results/model.joblib --metrics results/metrics.json --plots results
 python src/evaluate.py --input data/clean_stock.csv --model results/model.joblib --out results
-
-
