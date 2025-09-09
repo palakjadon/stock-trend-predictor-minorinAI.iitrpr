@@ -1,3 +1,5 @@
+# dataset generator: can make synthetic or fetch yahoo finance data
+
 import argparse
 import numpy as np
 import pandas as pd
@@ -23,18 +25,35 @@ def make_synthetic(days: int, seed: int = 42) -> pd.DataFrame:
     })
     return df
 
+def make_yahoo(ticker: str, start: str, end: str) -> pd.DataFrame:
+    # fetch data from yahoo finance
+    import yfinance as yf
+    df = yf.download(ticker, start=start, end=end)
+    df = df.reset_index()[["Date", "Open", "High", "Low", "Close", "Volume"]]
+    return df
+
 def main():
     # parse args
-    p = argparse.ArgumentParser(description="make a tiny synthetic ohlcv dataset")
+    p = argparse.ArgumentParser(description="make dataset (synthetic or yahoo finance)")
     p.add_argument("--out", required=True, help="output csv path, e.g., data/sample_stock.csv")
-    p.add_argument("--days", type=int, default=180, help="number of business days")
-    p.add_argument("--seed", type=int, default=42, help="random seed for reproducibility")
+    p.add_argument("--days", type=int, default=180, help="number of business days (for synthetic)")
+    p.add_argument("--seed", type=int, default=42, help="random seed for synthetic data")
+    p.add_argument("--ticker", type=str, help="yahoo finance ticker (e.g., AAPL, RELIANCE.NS)")
+    p.add_argument("--start", type=str, default="2023-01-01", help="start date for yahoo finance (yyyy-mm-dd)")
+    p.add_argument("--end", type=str, default="2023-12-31", help="end date for yahoo finance (yyyy-mm-dd)")
     args = p.parse_args()
 
-    # generate and save
-    df = make_synthetic(days=args.days, seed=args.seed)
+    # decide mode
+    if args.ticker:
+        print(f"fetching yahoo finance data for {args.ticker}...")
+        df = make_yahoo(args.ticker, args.start, args.end)
+    else:
+        print("generating synthetic random walk data...")
+        df = make_synthetic(days=args.days, seed=args.seed)
+
+    # save
     df.to_csv(args.out, index=False)
-    print(f"saved synthetic data to {args.out}")
+    print(f"saved data to {args.out}")
 
 if __name__ == "__main__":
     main()
